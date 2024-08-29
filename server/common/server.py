@@ -1,6 +1,7 @@
 import socket
 import logging
-
+import signal
+import sys
 
 class Server:
     def __init__(self, port, listen_backlog):
@@ -8,6 +9,31 @@ class Server:
         self._server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._server_socket.bind(('', port))
         self._server_socket.listen(listen_backlog)
+        self._active_connections = []
+        
+        signal.signal(signal.SIGINT, self.__handle_signal)
+        signal.signal(signal.SIGTERM, self.__handle_signal)
+
+
+    def __handle_signal(self, signum, frame):
+        logging.info(f"action: signal {signum} | result: in_progress")
+        
+        for client_sock in self._active_connections:
+            try:
+                logging.debug("action: close client socket | result: in_progress")
+                client_sock.close()
+                logging.debug("action: close client socket | result: success")
+            except OSError as e:
+                logging.error(f"action: close client socket | result: fail | error: {e}")
+        
+        
+        logging.debug("action: close server socket | result: in_progress")
+        self._server_socket.close()
+        logging.debug("action: close server socket | result: success")
+        
+        logging.info(f"action: signal {signum} | result: success")
+        sys.exit(0)
+
 
     def run(self):
         """
@@ -31,6 +57,8 @@ class Server:
         If a problem arises in the communication with the client, the
         client socket will also be closed
         """
+        self._active_connections.append(client_sock)
+       
         try:
             # TODO: Modify the receive to avoid short-reads
             msg = client_sock.recv(1024).rstrip().decode('utf-8')
@@ -42,6 +70,7 @@ class Server:
             logging.error("action: receive_message | result: fail | error: {e}")
         finally:
             client_sock.close()
+            self._active_connections.remove(client_sock)
 
     def __accept_new_connection(self):
         """
