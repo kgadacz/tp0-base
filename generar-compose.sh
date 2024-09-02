@@ -20,4 +20,4 @@ echo "Nombre del archivo de salida: $OUTPUT_FILE"
 echo "Cantidad de clientes: $NUM_CLIENTS"
 
 # Llamar al script de Python para generar el archivo
-python3 generar_docker_compose.py $OUTPUT_FILE $NUM_CLIENTS
+python generar_docker_compose.py $OUTPUT_FILE $NUM_CLIENTS
