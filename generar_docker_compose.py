@@ -26,7 +26,7 @@ services:
     entrypoint: /client
     environment:
       - CLI_ID={i}
-      - CLI_LOG_LEVEL=DEBUG
+      - CLI_LOG_LEVEL=INFO
     volumes:
       - ./client/config.yaml:/config.yaml
     networks:
