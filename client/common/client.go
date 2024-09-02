@@ -100,11 +100,9 @@ func (c *Client) StartClientLoop() {
 // handleSignals Handles graceful shutdown on SIGTERM or SIGINT
 func (c *Client) handleSignals() {
 	<-c.signalChan
-	log.Infof("action: signal_received | result: graceful_shutdown | client_id: %v", c.config.ID)
 
 	if c.conn != nil {
 		c.conn.Close()
-		log.Infof("action: close_connection | result: success | client_id: %v", c.config.ID)
 	}
 
 	c.closeChan <- true
