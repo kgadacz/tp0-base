@@ -68,8 +68,8 @@ func (c *Client) StartClientLoop() {
 	err := protocol.SendMessage(c.config.ID,c.data)
 
 	if err == nil {
-		_, err = protocol.ReceiveMessage()
-		if err != nil {
+		msg, errReceive := protocol.ReceiveMessage()
+		if errReceive != nil || msg == "Error\n" {
 			log.Criticalf(
 				"action: apuesta_enviada | result: fail | dni: %v | numero: %v", c.data.Document, c.data.Number,
 			)

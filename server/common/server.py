@@ -69,9 +69,10 @@ class Server:
             logging.info(
                 f'action: apuesta_almacenada | result: success | dni: {bet.document} | numero: {bet.number}')
             
-            send_message(client_sock, "ok")
+            send_message(client_sock, "Ok")
         except OSError as e:
             logging.error("action: receive_message | result: fail | error: {e}")
+            send_message(client_sock, "Error")
         finally:
             client_sock.close()
             self._active_connections.remove(client_sock)
