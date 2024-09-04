@@ -112,6 +112,7 @@ func main() {
 	}
 
 	clientData := domain.ClientData{
+		Id: os.Getenv("ID"),
 		FirstName: os.Getenv("NOMBRE"),
 		LastName:  os.Getenv("APELLIDO"),
 		Document: os.Getenv("DOCUMENTO"),

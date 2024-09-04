@@ -4,10 +4,10 @@ import (
 	"fmt"
 )
 
-func ConvertClientDataToMessage(agency string, data domain.ClientData) string {
+func ConvertClientDataToMessage(data domain.ClientData) string {
 	return fmt.Sprintf(
 		"%s,%s,%s,%s,%s,%s\n",
-		agency,
+		data.Id,
 		data.FirstName,
 		data.LastName,
 		data.Document,

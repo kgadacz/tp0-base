@@ -19,8 +19,8 @@ func NewProtocol(conn net.Conn) *Protocol {
 	return &Protocol{conn: conn}
 }
 
-func (p *Protocol) SendMessage(agencyNumber string, data domain.ClientData) error {
-	msg := ConvertClientDataToMessage(agencyNumber, data)
+func (p *Protocol) SendMessage(data domain.ClientData) error {
+	msg := ConvertClientDataToMessage(data)
     length := len(msg)
     if length > config.MAX_MESSAGE_LENGTH {
         return fmt.Errorf("message too long: length is %d bytes, but max is %d", length, config.MAX_MESSAGE_LENGTH)

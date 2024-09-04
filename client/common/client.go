@@ -65,7 +65,7 @@ func (c *Client) StartClientLoop() {
 	
 	protocol := transport.NewProtocol(c.conn)
 
-	err := protocol.SendMessage(c.config.ID,c.data)
+	err := protocol.SendMessage(c.data)
 
 	if err == nil {
 		msg, errReceive := protocol.ReceiveMessage()
