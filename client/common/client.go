@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"github.com/7574-sistemas-distribuidos/docker-compose-init/client/domain"
 	"github.com/7574-sistemas-distribuidos/docker-compose-init/client/transport"
 
 	"github.com/op/go-logging"
@@ -15,7 +14,7 @@ var log = logging.MustGetLogger("log")
 
 type Client struct {
 	config     ClientConfig
-	data 	   domain.ClientData
+	data 	   []string
 	conn       net.Conn
 	signalChan chan os.Signal
 	closeChan  chan bool
@@ -23,10 +22,10 @@ type Client struct {
 
 // NewClient Initializes a new client receiving the configuration
 // as a parameter
-func NewClient(config ClientConfig, data domain.ClientData) *Client {
+func NewClient(config ClientConfig, bets []string) *Client {
 	client := &Client{
 		config:     config,
-		data:       data,
+		data:       bets,
 		signalChan: make(chan os.Signal, 1),
 		closeChan:  make(chan bool),
 	}
@@ -59,32 +58,31 @@ func (c *Client) createClientSocket() error {
 
 // StartClientLoop Send messages to the client until some time threshold is met
 func (c *Client) StartClientLoop() {
-
 	// Create the connection to the server
 	c.createClientSocket()
-	
+
 	protocol := transport.NewProtocol(c.conn)
-
-	err := protocol.SendMessage(c.data)
-
-	if err == nil {
-		msg, errReceive := protocol.ReceiveMessage()
-		if errReceive != nil || msg == "Error\n" {
+	errorBatch := false
+	protocol.SendMessageChunks(len(c.data))
+	for _, item := range c.data {
+		// Send each item in the data array
+		err := protocol.SendMessage(item)
+		if err != nil {
 			log.Criticalf(
-				"action: apuesta_enviada | result: fail | dni: %v | numero: %v", c.data.Document, c.data.Number,
+				"action: send | result: fail | client_id: %v | error: %v | data: %v",
+				c.config.ID,
+				err,
+				item,
 			)
-		} else {
-			log.Infof(
-				"action: apuesta_enviada | result: success | dni: %v | numero: %v", c.data.Document, c.data.Number,
-			)
+			errorBatch = true
+			continue // Skip to the next item if sending fails
 		}
+	}
 
+	if errorBatch {
+		log.Criticalf("action: send | result: fail | client: %v", os.Getenv("ID"))
 	} else {
-		log.Criticalf(
-			"action: send | result: fail | client_id: %v | error: %v",
-			c.config.ID,
-			err,
-		)
+		log.Infof("action: send | result: success | client: %v", os.Getenv("ID"))
 	}
 
 	c.conn.Close()

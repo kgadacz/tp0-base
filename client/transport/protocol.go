@@ -1,7 +1,6 @@
 package transport
 
 import (
-	"github.com/7574-sistemas-distribuidos/docker-compose-init/client/domain"
 	"net"
 	"bufio"
 	"fmt"
@@ -19,8 +18,7 @@ func NewProtocol(conn net.Conn) *Protocol {
 	return &Protocol{conn: conn}
 }
 
-func (p *Protocol) SendMessage(data domain.ClientData) error {
-	msg := ConvertClientDataToMessage(data)
+func (p *Protocol) SendMessage(msg string) error {
     length := len(msg)
     if length > config.MAX_MESSAGE_LENGTH {
         return fmt.Errorf("message too long: length is %d bytes, but max is %d", length, config.MAX_MESSAGE_LENGTH)
@@ -37,6 +35,22 @@ func (p *Protocol) SendMessage(data domain.ClientData) error {
     }
 
     return nil
+}
+
+func (p *Protocol) SendMessageChunks(msg int) error {
+	// Create a buffer to hold the byte representation of the integer
+	buf := make([]byte, 4) // Using 4 bytes for int (assuming 32-bit integer)
+
+	// Convert the integer to bytes in big-endian order
+	binary.BigEndian.PutUint32(buf, uint32(msg))
+
+	// Send the byte slice to the connection
+	_, err := p.conn.Write(buf)
+	if err != nil {
+		return fmt.Errorf("error writing amount of chunks: %w", err)
+	}
+
+	return nil
 }
 
 func (p *Protocol) ReceiveMessage() (string, error) {

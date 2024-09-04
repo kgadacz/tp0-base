@@ -7,5 +7,5 @@ loop:
 log:
   level: "INFO"
 batch:
-  maxAmount: 10
+  maxAmount: 2
 MAX_MESSAGE_LENGTH: 8192

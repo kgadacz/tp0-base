@@ -21,15 +21,11 @@ services:
     container_name: client{i}
     image: client:latest
     entrypoint: /client
-    volumes:
-      - ./client/config.yaml:/config.yaml
     environment:
       - ID={i}
-      - NOMBRE=Nombre{i}
-      - APELLIDO=Apellido{i}
-      - DOCUMENTO=3090446{i}
-      - NACIMIENTO=1999-03-1{i}
-      - NUMERO=757{i}
+    volumes:
+      - ./client/config.yaml:/config.yaml
+      - ./.data/agency-{i}.csv:/agency-{i}.csv
     networks:
       - testing_net
     depends_on:

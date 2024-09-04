@@ -3,7 +3,7 @@ import logging
 import signal
 import sys
 
-from common.protocol import receive_message, send_message
+from common.protocol import receive_message, send_message, receive_message_chunks
 from common.utils import store_bets
 
 class Server:
@@ -63,13 +63,31 @@ class Server:
         self._active_connections.append(client_sock)
        
         try:
-            bet = receive_message(client_sock)
-            store_bets([bet])
-            addr = client_sock.getpeername()
-            logging.info(
-                f'action: apuesta_almacenada | result: success | dni: {bet.document} | numero: {bet.number}')
-            
-            send_message(client_sock, "Ok")
+            count_chunks = receive_message_chunks(client_sock)
+            error_processing_chunks = False
+            # logging.info(f'chunks_recibidos | result: success | cantidad: {count_chunks}')
+            cantidad_apuestas = 0
+            for i in range(count_chunks):
+                bets,hasError = receive_message(client_sock,i,count_chunks)
+
+                if hasError:
+                    error_processing_chunks = True
+                                    
+                cantidad_apuestas += len(bets)
+                for bet in bets:
+                    store_bets([bet])
+
+                # if len(bets) > 0:
+                    # logging.info(f'apuestas_procesadas | result: success | cantidad: {len(bets)}')
+
+            # if error_processing_chunks:
+            #     # logging.error(
+            #     #     f'apuesta_recibida | result: fail | cantidad: {cantidad_apuestas}')
+            #     send_message(client_sock, "Error")
+            # else:
+            #     # logging.info(
+            #     #     f'apuesta_recibida | result: success | cantidad: {cantidad_apuestas}')
+            #     send_message(client_sock, "Ok")
         except OSError as e:
             logging.error("action: receive_message | result: fail | error: {e}")
             send_message(client_sock, "Error")
