@@ -62,27 +62,14 @@ func (c *Client) StartClientLoop() {
 	c.createClientSocket()
 
 	protocol := transport.NewProtocol(c.conn)
-	errorBatch := false
-	protocol.SendMessageChunks(len(c.data))
-	for _, item := range c.data {
-		// Send each item in the data array
-		err := protocol.SendMessage(item)
-		if err != nil {
-			log.Criticalf(
-				"action: send | result: fail | client_id: %v | error: %v | data: %v",
-				c.config.ID,
-				err,
-				item,
-			)
-			errorBatch = true
-			continue // Skip to the next item if sending fails
-		}
-	}
+	chunksAmount := len(c.data)
+	protocol.SendMessageChunks(chunksAmount)
 
-	if errorBatch {
-		log.Criticalf("action: send | result: fail | client: %v", os.Getenv("ID"))
-	} else {
-		log.Infof("action: send | result: success | client: %v", os.Getenv("ID"))
+	for i := 0; i < chunksAmount; i++ {
+		// Send each item in the data array
+		item := c.data[i]
+		protocol.SendMessage(item)
+		protocol.ReceiveMessage()
 	}
 
 	c.conn.Close()

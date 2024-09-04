@@ -14,12 +14,12 @@ def receive_message(client_sock, nro_chunk, total_chunks) -> List[Bet]:
 
     # Read the length of the incoming message
     length = int.from_bytes(client_sock.recv(2), byteorder='big')
-
     if length == 0:
         return [], True
 
     # Read the message based on the length, but ensure all data is received
     data = b""
+
     while len(data) < length:
         chunk = client_sock.recv(length - len(data))
         if not chunk:
@@ -29,7 +29,6 @@ def receive_message(client_sock, nro_chunk, total_chunks) -> List[Bet]:
     
     try:
         msg = data.decode('utf-8').strip()
-        logging.info(f'chunk {nro_chunk}/{total_chunks}: {msg}')
     except UnicodeDecodeError as e:
         return [], True
 
