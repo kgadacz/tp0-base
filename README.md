@@ -26,3 +26,9 @@ Por otro lado, los mensajes que envia el servidor tienen el siguiente formato:
     Error: Si hubo algun problema al guardar la apuesta del cliente
 
 Los paquetes pueden ser de a lo sumo 8kb.
+
+### Ejercicio N°6:
+
+Modificaciones realizadas al protocolo descripto en el ejercicio 5:
+
+Se agrego el envio desde el cliente de un primer paquete indicando la cantidad de chunks que va a recibir el servidor. Esto lo utiliza el servidor para saber cuantos chunks esperar. Luego el protocolo continua igual que lo descripto en el ejercicio 5
