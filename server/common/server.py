@@ -13,7 +13,7 @@ from common.constants import (
 )
 
 class Server:
-    def __init__(self, port, listen_backlog):
+    def __init__(self, port, listen_backlog, amount_of_clients):
         # Initialize server socket
         self._server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._server_socket.bind(('', port))
@@ -49,7 +49,6 @@ class Server:
         communication with a client. After the communication
         finishes, the server starts to accept new connections again.
         """
-
         while True:
             client_sock = self.__accept_new_connection()
             self.__handle_client_connection(client_sock)
