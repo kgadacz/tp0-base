@@ -32,3 +32,11 @@ Los paquetes pueden ser de a lo sumo 8kb.
 Modificaciones realizadas al protocolo descripto en el ejercicio 5:
 
 Se agrego el envio desde el cliente de un primer paquete indicando la cantidad de chunks que va a recibir el servidor. Esto lo utiliza el servidor para saber cuantos chunks esperar. Luego el protocolo continua igual que lo descripto en el ejercicio 5
+
+### Ejercicio N°8:
+
+Para la sincronizacion se utilizo el módulo multiprocessing el cual permite ejecutar múltiples procesos en paralelo a diferencia de los hilos (threads), que en Python están limitados por el Global Interpreter Lock (GIL).
+
+Utilizando multiprocessing, cada proceso tiene su propia memoria, lo que significa que no comparten estado de manera directa, a diferencia de los hilos.
+
+Ademas se utilizo locks para restringir las secciones criticas como por ejemplo el guardado de bets y la cantidad de clientes que terminaron de procesar sus bets.
