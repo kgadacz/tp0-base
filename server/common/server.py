@@ -83,14 +83,14 @@ class Server:
             cantidad_apuestas += len(bets)
             
             # Critical section: store bets (synchronized with lock)
-            logging.info("pido el lock para store_bets")
+            logging.debug("pido el lock para store_bets")
             with self._store_bets_lock:
                 store_bets([bet for bet in bets])
-            logging.info("libero el lock para store_bets")
-        logging.info("pido el lock para incrementar el contador de apuestas")
+            logging.debug("libero el lock para store_bets")
+        logging.debug("pido el lock para incrementar el contador de apuestas")
         with self._clients_bets_finished_lock:
             self._clients_bets_finished.value += 1
-        logging.info("libero el lock para incrementar el contador de apuestas")
+        logging.debug("libero el lock para incrementar el contador de apuestas")
         if error_processing_chunks:
             logging.error(f'apuestas_recibidas | result: fail | cantidad: {cantidad_apuestas}')
         else:
