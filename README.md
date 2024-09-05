@@ -8,30 +8,41 @@ Para generar el archivo docker compose se debe correr el comando:
 
 donde el primer parametro indica como se va a llamar el archivo docker-compose que se va a generar y el segundo indica la cantidad de clientes con la cual se va a generar el archivo docker-compose. Un ejemplo de como ejecutarlo es: **./generar-compose.sh docker-compose-dev.yaml 5**
 
+Una vez generado el archivo docker compose, puede correrse el script.sh que se adjunta el cual corre internamente los siguientes comandos:
+* docker compose -f docker-compose-dev.yaml down
+* docker build -f ./server/Dockerfile -t "server:latest" .
+* docker build -f ./client/Dockerfile -t "client:latest" .
+* docker compose -f docker-compose-dev.yaml up -d --build
+
+Finalmente para ver los logs se puede hacer con:
+* docker logs server
+* docker logs clientX (donde X viene a ser el numero del cliente, por ejemplo client1)
+
+
 ### Ejercicio N°5:
 
 Protocolo de comunicación implementado:
-* Cuando un cliente desea enviar un mensaje primero debe enviar la longitud que va a tener el mismo y luego su contenido. De esta forma se asegura que no ocurre un short read del lado del servidor ya que sabe exactamente cuanto debe leer.
-* Cuando el servidor desea enviar un mensaje se envia directamente sin enviar previamente la longitud del mismo y para identificar el fin del mensaje se utiliza \n
 
-Los mensajes que envia el cliente tienen el siguiente formato:
+* Cuando un cliente desea enviar un mensaje, primero envía la longitud del mensaje (como un entero de 2 bytes en formato Big Endian), seguido del contenido del mensaje. Esto asegura que el servidor pueda leer el mensaje completo sin problemas de lectura corta.
+* Cuando el servidor envía un mensaje, también envía primero la longitud del mensaje (como un entero de 2 bytes en formato Big Endian) y luego el mensaje en sí. De esta manera se asegura no tener problemas de lectura corta
+
+Para enviar los bets se utiliza el siguiente formato:
 
     NroAgencia,Nombre,Apellido,Documento,FechaNacimiento,NroApostado
 
 Es decir, los datos estan separados por comas y en ese orden.
 
-Por otro lado, los mensajes que envia el servidor tienen el siguiente formato:
+Cuando se debe enviar por chunks, los bets son concatenados por ";" y en el servidor se utilizara eso para poder separar cada bet.
 
-    Ok: Si pudo guardar la apuesta del cliente
-    Error: Si hubo algun problema al guardar la apuesta del cliente
-
-Los paquetes pueden ser de a lo sumo 8kb.
+Los paquetes que envia el cliente como el servidor pueden ser de a lo sumo 8kb.
 
 ### Ejercicio N°6:
 
-Modificaciones realizadas al protocolo descripto en el ejercicio 5:
+Para adaptar la logica a lo pedido en este ejercicio, es decir, el envio por chunks, el cliente envia un primer paquete indicando la cantidad de chunks que va a recibir el servidor. Esto lo utiliza el servidor para saber cuantos chunks esperar. Luego el protocolo continua igual que lo descripto en el ejercicio 5
 
-Se agrego el envio desde el cliente de un primer paquete indicando la cantidad de chunks que va a recibir el servidor. Esto lo utiliza el servidor para saber cuantos chunks esperar. Luego el protocolo continua igual que lo descripto en el ejercicio 5
+### Ejercicio N°7:
+
+Para este ejercicio cuando un cliente termina de enviar todos sus bets, el servidor aumenta su contador interno donde indica la cantidad de clientes que terminaron de mandar sus bets. En configuracion tiene una variable la cual indica cuantos clientes debe esperar antes de poder revelar los resultados del sorteo. Para el cliente se utilizo una logica donde al preguntar por los resultados del sorteo, si los mismos aun no estan disponibles (el servidor le envia un REFUSED), el mismo vuelve a preguntar hasta que obtiene un resultado satisfactorio (listado de los DNIs que ganaron)
 
 ### Ejercicio N°8:
 
