@@ -6,7 +6,8 @@ import (
 	"os/signal"
 	"syscall"
 	"github.com/7574-sistemas-distribuidos/docker-compose-init/client/transport"
-
+	"github.com/7574-sistemas-distribuidos/docker-compose-init/client/constants"
+ 	"strconv"
 	"github.com/op/go-logging"
 )
 
@@ -56,14 +57,17 @@ func (c *Client) createClientSocket() error {
 	return nil
 }
 
-// StartClientLoop Send messages to the client until some time threshold is met
-func (c *Client) StartClientLoop() {
+func (c *Client) StartSendingBets() error {
 	// Create the connection to the server
 	c.createClientSocket()
 
 	protocol := transport.NewProtocol(c.conn)
+
+
+	protocol.SendMessage(constants.SEND_BETS)
+
 	chunksAmount := len(c.data)
-	protocol.SendMessageChunks(chunksAmount)
+	protocol.SendMessage(strconv.Itoa(chunksAmount))
 
 	for i := 0; i < chunksAmount; i++ {
 		// Send each item in the data array
@@ -71,8 +75,36 @@ func (c *Client) StartClientLoop() {
 		protocol.SendMessage(item)
 		protocol.ReceiveMessage()
 	}
-
 	c.conn.Close()
+	return nil
+}
+
+func (c *Client) StartAskingWinner() error {
+	id := os.Getenv("ID")
+	
+	for {
+		// Create the connection to the server
+		c.createClientSocket()
+		protocol := transport.NewProtocol(c.conn)
+		protocol.SendMessage(constants.ASK_WINNER)
+		protocol.SendMessage(id)
+		winners, _ := protocol.ReceiveMessage()
+		c.conn.Close()
+		if winners == constants.REFUSED {
+			log.Infof("action: consulta_ganadores | result: refused")
+		} else {
+			log.Infof("action: consulta_ganadores | result: success | cant_ganadores: %v", winners)
+			break
+		}
+	}
+
+	return nil
+}
+
+// StartClientLoop Send messages to the client until some time threshold is met
+func (c *Client) StartClientLoop() {
+	c.StartSendingBets()
+	c.StartAskingWinner()
 }
 
 // handleSignals Handles graceful shutdown on SIGTERM or SIGINT
