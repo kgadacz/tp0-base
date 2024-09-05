@@ -7,7 +7,7 @@ import (
 	"syscall"
 	"github.com/7574-sistemas-distribuidos/docker-compose-init/client/domain"
 	"github.com/7574-sistemas-distribuidos/docker-compose-init/client/transport"
-
+	"github.com/7574-sistemas-distribuidos/docker-compose-init/client/constants"
 	"github.com/op/go-logging"
 )
 
@@ -64,12 +64,12 @@ func (c *Client) StartClientLoop() {
 	c.createClientSocket()
 	
 	protocol := transport.NewProtocol(c.conn)
-
-	err := protocol.SendMessage(c.data)
+	message := transport.ConvertClientDataToMessage(c.data)
+	err := protocol.SendMessage(message)
 
 	if err == nil {
 		msg, errReceive := protocol.ReceiveMessage()
-		if errReceive != nil || msg == "Error\n" {
+		if errReceive != nil || msg == constants.ERROR {
 			log.Criticalf(
 				"action: apuesta_enviada | result: fail | dni: %v | numero: %v", c.data.Document, c.data.Number,
 			)

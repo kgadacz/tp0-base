@@ -5,14 +5,17 @@ import sys
 
 from common.protocol import receive_message, send_message
 from common.utils import store_bets
+from common.bet_parser import parse_bets
+from common.constants import OK_RESPONSE,ERROR_RESPONSE
 
 class Server:
-    def __init__(self, port, listen_backlog):
+    def __init__(self, port, listen_backlog, amount_of_clients):
         # Initialize server socket
         self._server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._server_socket.bind(('', port))
         self._server_socket.listen(listen_backlog)
         self._active_connections = []
+        self._amount_of_clients = amount_of_clients
         
         signal.signal(signal.SIGINT, self.__handle_signal)
         signal.signal(signal.SIGTERM, self.__handle_signal)
@@ -63,16 +66,16 @@ class Server:
         self._active_connections.append(client_sock)
        
         try:
-            bet = receive_message(client_sock)
-            store_bets([bet])
+            bets, _ = parse_bets(receive_message(client_sock))
+            store_bets(bets)
             addr = client_sock.getpeername()
-            logging.info(
-                f'action: apuesta_almacenada | result: success | dni: {bet.document} | numero: {bet.number}')
-            
-            send_message(client_sock, "Ok")
+
+            for bet in bets:
+                logging.info(f"action: apuesta_almacenada | result: success | dni: {bet.document} | numero: {bet.number}")
+                send_message(client_sock, OK_RESPONSE)
         except OSError as e:
             logging.error("action: receive_message | result: fail | error: {e}")
-            send_message(client_sock, "Error")
+            send_message(client_sock, ERROR_RESPONSE)
         finally:
             client_sock.close()
             self._active_connections.remove(client_sock)
