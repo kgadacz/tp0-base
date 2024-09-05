@@ -13,6 +13,15 @@ const (
 )
 
 const (
+    OK = "OK\n"
+    ERROR = "ERROR\n"
+)
+
+const (
 	SEND_BETS    = "SEND_BETS"
 	ASK_WINNER   = "ASK_WINNER"
+)
+
+const (
+    ERROR_PROCESSING_CHUNKS = "ERROR_PROCESSING_CHUNKS"
 )

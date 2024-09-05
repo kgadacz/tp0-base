@@ -19,6 +19,17 @@ Finalmente para ver los logs se puede hacer con:
 * docker logs clientX (donde X viene a ser el numero del cliente, por ejemplo client1)
 
 
+Una vez generado el archivo docker compose, puede correrse el script.sh que se adjunta el cual corre internamente los siguientes comandos:
+* docker compose -f docker-compose-dev.yaml down
+* docker build -f ./server/Dockerfile -t "server:latest" .
+* docker build -f ./client/Dockerfile -t "client:latest" .
+* docker compose -f docker-compose-dev.yaml up -d --build
+
+Finalmente para ver los logs se puede hacer con:
+* docker logs server
+* docker logs clientX (donde X viene a ser el numero del cliente, por ejemplo client1)
+
+
 ### Ejercicio N°5:
 
 Protocolo de comunicación implementado:
@@ -26,6 +37,10 @@ Protocolo de comunicación implementado:
 * Cuando un cliente desea enviar un mensaje, primero envía la longitud del mensaje (como un entero de 2 bytes en formato Big Endian), seguido del contenido del mensaje. Esto asegura que el servidor pueda leer el mensaje completo sin problemas de lectura corta.
 * Cuando el servidor envía un mensaje, también envía primero la longitud del mensaje (como un entero de 2 bytes en formato Big Endian) y luego el mensaje en sí. De esta manera se asegura no tener problemas de lectura corta
 
+* Cuando un cliente desea enviar un mensaje, primero envía la longitud del mensaje (como un entero de 2 bytes en formato Big Endian), seguido del contenido del mensaje. Esto asegura que el servidor pueda leer el mensaje completo sin problemas de lectura corta.
+* Cuando el servidor envía un mensaje, también envía primero la longitud del mensaje (como un entero de 2 bytes en formato Big Endian) y luego el mensaje en sí. De esta manera se asegura no tener problemas de lectura corta
+
+Para enviar los bets se utiliza el siguiente formato:
 Para enviar los bets se utiliza el siguiente formato:
 
     NroAgencia,Nombre,Apellido,Documento,FechaNacimiento,NroApostado

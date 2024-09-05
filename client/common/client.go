@@ -68,13 +68,27 @@ func (c *Client) StartSendingBets() error {
 	protocol.SendMessage(constants.SEND_BETS)
 
 	chunksAmount := len(c.data)
-	protocol.SendMessage(strconv.Itoa(chunksAmount))
-
+	chunksAmountString := strconv.Itoa((len(c.data)))
+	protocol.SendMessage(chunksAmountString)
 	for i := 0; i < chunksAmount; i++ {
 		// Send each item in the data array
 		item := c.data[i]
 		protocol.SendMessage(item)
-		protocol.ReceiveMessage()
+		_, err := protocol.ReceiveMessage()
+
+		if err != nil {
+			log.Criticalf(
+				"action: send | result: fail | client_id: %v | error: %v",
+				c.config.ID,
+				err,
+			)
+		}
+	}
+	respuesta,_ := protocol.ReceiveMessage()
+	if respuesta == constants.ERROR_PROCESSING_CHUNKS {
+		log.Criticalf("action: apuestas_enviadas | result: fail")
+	} else {
+		log.Infof("action: apuestas_enviadas | result: success")
 	}
 	c.conn.Close()
 	return nil
