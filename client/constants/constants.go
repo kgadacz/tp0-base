@@ -9,6 +9,10 @@ const (
 )
 
 const (
+	EMPTY = "\n"
+)
+
+const (
 	SEND_BETS    = "SEND_BETS"
 	ASK_WINNER   = "ASK_WINNER"
 )

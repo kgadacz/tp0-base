@@ -8,6 +8,7 @@ import (
 	"github.com/7574-sistemas-distribuidos/docker-compose-init/client/transport"
 	"github.com/7574-sistemas-distribuidos/docker-compose-init/client/constants"
  	"strconv"
+	"strings"
 	"github.com/op/go-logging"
 )
 
@@ -79,6 +80,17 @@ func (c *Client) StartSendingBets() error {
 	return nil
 }
 
+// GetAmount splits the winners string by commas and returns the number of elements.
+func GetAmount(winners string) int {
+    // Split the string by comma
+	if winners == constants.EMPTY {
+		return 0
+	}
+
+    elements := strings.Split(winners, ",")
+    return len(elements)
+}
+
 func (c *Client) StartAskingWinner() error {
 	id := os.Getenv("ID")
 	
@@ -89,11 +101,13 @@ func (c *Client) StartAskingWinner() error {
 		protocol.SendMessage(constants.ASK_WINNER)
 		protocol.SendMessage(id)
 		winners, _ := protocol.ReceiveMessage()
+
+		log.Debugf("action: dni_ganadores: %v", winners)
 		c.conn.Close()
 		if winners == constants.REFUSED {
 			log.Infof("action: consulta_ganadores | result: refused")
 		} else {
-			log.Infof("action: consulta_ganadores | result: success | cant_ganadores: %v", winners)
+			log.Infof("action: consulta_ganadores | result: success | cant_ganadores: %v", GetAmount(winners))
 			break
 		}
 	}

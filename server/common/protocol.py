@@ -1,6 +1,7 @@
 from .utils import Bet
 from typing import List
-from common.constants import SOCKET_MESSAGE_LENGTH_BYTES, ENCODING_FORMAT, LINE_TERMINATOR
+from common.constants import SOCKET_MESSAGE_LENGTH_BYTES, ENCODING_FORMAT, LINE_TERMINATOR, MAX_MESSAGE_LENGTH
+import struct
 
 def receive_message(client_sock) -> str:
     """
@@ -23,7 +24,15 @@ def receive_message(client_sock) -> str:
 
 def send_message(client_sock, data):
     """
-    Responds to a client
+    Responds to a client by sending the length of the message followed by the message itself.
     """
     message = f"{data}{LINE_TERMINATOR}".encode(ENCODING_FORMAT)
+    length = len(message)
+
+    if length > MAX_MESSAGE_LENGTH:
+        raise ValueError(f"Message too long: length is {length} bytes, but max is {MAX_MESSAGE_LENGTH}")
+
+  # Convert length to a 2-byte integer in Big Endian format
+    length_bytes = struct.pack('!H', length)
+    client_sock.send(length_bytes)
     client_sock.send(message)

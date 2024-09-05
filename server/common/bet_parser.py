@@ -27,3 +27,11 @@ def parse_bets(data: str) -> Tuple[List[Bet], bool]:
             hasError = True
 
     return bets, hasError
+
+def dnis_to_string(dnis: List[str]) -> str:
+    """
+    Converts a list of DNI numbers to a string separated by commas.
+    """
+    if not dnis:
+        return ""
+    return FIELD_SEPARATOR.join(dnis)
