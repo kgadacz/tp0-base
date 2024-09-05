@@ -5,14 +5,17 @@ import sys
 
 from common.protocol import receive_message, send_message, receive_message_chunks
 from common.utils import store_bets
+from common.bet_parser import parse_bets
+from common.constants import OK_RESPONSE,ERROR_RESPONSE
 
 class Server:
-    def __init__(self, port, listen_backlog):
+    def __init__(self, port, listen_backlog, amount_of_clients):
         # Initialize server socket
         self._server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._server_socket.bind(('', port))
         self._server_socket.listen(listen_backlog)
         self._active_connections = []
+        self._amount_of_clients = amount_of_clients
         
         signal.signal(signal.SIGINT, self.__handle_signal)
         signal.signal(signal.SIGTERM, self.__handle_signal)
@@ -82,7 +85,7 @@ class Server:
                 logging.info(f'apuestas_recibidas | result: success | cantidad: {cantidad_apuestas}')
         except OSError as e:
             logging.error("action: receive_message | result: fail | error: {e}")
-            send_message(client_sock, "Error")
+            send_message(client_sock, ERROR_RESPONSE)
         finally:
             client_sock.close()
             self._active_connections.remove(client_sock)

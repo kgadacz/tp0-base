@@ -6,7 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 	"github.com/7574-sistemas-distribuidos/docker-compose-init/client/transport"
-
+	"github.com/7574-sistemas-distribuidos/docker-compose-init/client/constants"
 	"github.com/op/go-logging"
 )
 
@@ -62,14 +62,27 @@ func (c *Client) StartClientLoop() {
 	c.createClientSocket()
 
 	protocol := transport.NewProtocol(c.conn)
-	chunksAmount := len(c.data)
-	protocol.SendMessageChunks(chunksAmount)
+	message := transport.ConvertClientDataToMessage(c.data)
+	err := protocol.SendMessage(message)
 
-	for i := 0; i < chunksAmount; i++ {
-		// Send each item in the data array
-		item := c.data[i]
-		protocol.SendMessage(item)
-		protocol.ReceiveMessage()
+	if err == nil {
+		msg, errReceive := protocol.ReceiveMessage()
+		if errReceive != nil || msg == constants.ERROR {
+			log.Criticalf(
+				"action: apuesta_enviada | result: fail | dni: %v | numero: %v", c.data.Document, c.data.Number,
+			)
+		} else {
+			log.Infof(
+				"action: apuesta_enviada | result: success | dni: %v | numero: %v", c.data.Document, c.data.Number,
+			)
+		}
+
+	} else {
+		log.Criticalf(
+			"action: send | result: fail | client_id: %v | error: %v",
+			c.config.ID,
+			err,
+		)
 	}
 
 	c.conn.Close()
