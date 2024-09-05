@@ -5,7 +5,7 @@ import sys
 
 from common.protocol import send_message, receive_message
 from common.utils import store_bets, load_bets, has_won
-from common.bet_parser import parse_bets
+from common.bet_parser import parse_bets, dnis_to_string
 from common.constants import (
     AMOUNT_OF_CLIENTS,
     BET_TYPE_MESSAGE, WINNER_TYPE_MESSAGE,
@@ -86,14 +86,14 @@ class Server:
             send_message(client_sock, REFUSED_RESPONSE)
         else:
             logging.info("action: sorteo | result: success")
-            amount_winners = self.__handle_get_amount_winners(id)
-            send_message(client_sock, str(amount_winners))
+            winners = self.__handle_get_winners(id)
+            send_message(client_sock, dnis_to_string(winners))
 
-    def __handle_get_amount_winners(self, id):
-        winners = 0
+    def __handle_get_winners(self, id):
+        winners = []
         for bet in load_bets():
             if has_won(bet) and bet.agency == id:
-                winners += 1
+                winners.append(bet.document)
         return winners
 
     def __handle_client_connection(self, client_sock):

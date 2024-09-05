@@ -2,7 +2,6 @@ package transport
 
 import (
 	"net"
-	"bufio"
 	"fmt"
 	"encoding/binary"
 	"github.com/7574-sistemas-distribuidos/docker-compose-init/client/constants"
@@ -38,10 +37,25 @@ func (p *Protocol) SendMessage(msg string) error {
 }
 
 func (p *Protocol) ReceiveMessage() (string, error) {
- 	msg, err := bufio.NewReader(p.conn).ReadString('\n')
+    // Read the length of the message (2 bytes)
+    lengthBytes := make([]byte, 2)
+    _, err := io.ReadFull(p.conn, lengthBytes)
+    if err != nil {
+        return "", fmt.Errorf("error reading message length from connection: %w", err)
+    }
+
+    // Convert the length from bytes to integer
+    length := binary.BigEndian.Uint16(lengthBytes)
+
+    // Read the message based on the length
+    messageBytes := make([]byte, length)
+    _, err = io.ReadFull(p.conn, messageBytes)
     if err != nil {
         return "", fmt.Errorf("error reading message from connection: %w", err)
     }
 
-    return msg, nil
+    // Convert message bytes to string
+    message := string(messageBytes)
+
+    return message, nil
 }
