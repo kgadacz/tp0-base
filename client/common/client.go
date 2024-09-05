@@ -7,11 +7,9 @@ import (
 	"syscall"
 	"github.com/7574-sistemas-distribuidos/docker-compose-init/client/transport"
 	"github.com/7574-sistemas-distribuidos/docker-compose-init/client/constants"
-	"github.com/7574-sistemas-distribuidos/docker-compose-init/client/constants"
  	"strconv"
 	"strings"
 	"github.com/op/go-logging"
-	"strconv"
 )
 
 var log = logging.MustGetLogger("log")

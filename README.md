@@ -39,3 +39,7 @@ Los paquetes que envia el cliente como el servidor pueden ser de a lo sumo 8kb.
 Para adaptar la logica a lo pedido en este ejercicio, es decir, el envio por chunks, el cliente envia un primer paquete indicando la cantidad de chunks que va a recibir el servidor. Esto lo utiliza el servidor para saber cuantos chunks esperar. Luego el protocolo continua igual que lo descripto en el ejercicio 5
 
 Cuando se debe enviar por chunks, los bets son concatenados por ";" y en el servidor se utilizara eso para poder separar cada bet.
+
+### Ejercicio N°7:
+
+Para este ejercicio cuando un cliente termina de enviar todos sus bets, el servidor aumenta su contador interno donde indica la cantidad de clientes que terminaron de mandar sus bets. En configuracion tiene una variable la cual indica cuantos clientes debe esperar antes de poder revelar los resultados del sorteo. Para el cliente se utilizo una logica donde al preguntar por los resultados del sorteo, si los mismos aun no estan disponibles (el servidor le envia un REFUSED), el mismo vuelve a preguntar hasta que obtiene un resultado satisfactorio (listado de los DNIs que ganaron)

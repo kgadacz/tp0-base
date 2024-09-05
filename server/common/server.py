@@ -7,7 +7,6 @@ from common.protocol import send_message, receive_message
 from common.utils import store_bets, load_bets, has_won
 from common.bet_parser import parse_bets, dnis_to_string
 from common.constants import (
-    AMOUNT_OF_CLIENTS,
     BET_TYPE_MESSAGE, WINNER_TYPE_MESSAGE,
     OK_RESPONSE, ERROR_RESPONSE, REFUSED_RESPONSE
 )
@@ -20,6 +19,7 @@ class Server:
         self._server_socket.listen(listen_backlog)
         self._active_connections = []
         self._clients_bets_finished = 0
+        self.amount_of_clients = amount_of_clients
         signal.signal(signal.SIGINT, self.__handle_signal)
         signal.signal(signal.SIGTERM, self.__handle_signal)
 
@@ -80,7 +80,7 @@ class Server:
     def __handle_ask_client_winner(self, client_sock):
         id = int(receive_message(client_sock))
 
-        if self._clients_bets_finished < AMOUNT_OF_CLIENTS:
+        if self._clients_bets_finished < self.amount_of_clients:
             logging.error("action: sorteo | result: fail")
             send_message(client_sock, REFUSED_RESPONSE)
         else:
