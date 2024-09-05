@@ -47,13 +47,13 @@ Para enviar los bets se utiliza el siguiente formato:
 
 Es decir, los datos estan separados por comas y en ese orden.
 
-Cuando se debe enviar por chunks, los bets son concatenados por ";" y en el servidor se utilizara eso para poder separar cada bet.
-
 Los paquetes que envia el cliente como el servidor pueden ser de a lo sumo 8kb.
 
 ### Ejercicio N°6:
 
 Para adaptar la logica a lo pedido en este ejercicio, es decir, el envio por chunks, el cliente envia un primer paquete indicando la cantidad de chunks que va a recibir el servidor. Esto lo utiliza el servidor para saber cuantos chunks esperar. Luego el protocolo continua igual que lo descripto en el ejercicio 5
+
+Cuando se debe enviar por chunks, los bets son concatenados por ";" y en el servidor se utilizara eso para poder separar cada bet.
 
 ### Ejercicio N°7:
 
