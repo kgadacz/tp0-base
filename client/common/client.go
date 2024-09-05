@@ -8,6 +8,7 @@ import (
 	"github.com/7574-sistemas-distribuidos/docker-compose-init/client/transport"
 	"github.com/7574-sistemas-distribuidos/docker-compose-init/client/constants"
 	"github.com/op/go-logging"
+	"strconv"
 )
 
 var log = logging.MustGetLogger("log")
@@ -62,29 +63,29 @@ func (c *Client) StartClientLoop() {
 	c.createClientSocket()
 
 	protocol := transport.NewProtocol(c.conn)
-	message := transport.ConvertClientDataToMessage(c.data)
-	err := protocol.SendMessage(message)
+	chunksAmount := len(c.data)
+	chunksAmountString := strconv.Itoa((len(c.data)))
+	protocol.SendMessage(chunksAmountString)
+	for i := 0; i < chunksAmount; i++ {
+		// Send each item in the data array
+		item := c.data[i]
+		protocol.SendMessage(item)
+		_, err := protocol.ReceiveMessage()
 
-	if err == nil {
-		msg, errReceive := protocol.ReceiveMessage()
-		if errReceive != nil || msg == constants.ERROR {
+		if err != nil {
 			log.Criticalf(
-				"action: apuesta_enviada | result: fail | dni: %v | numero: %v", c.data.Document, c.data.Number,
-			)
-		} else {
-			log.Infof(
-				"action: apuesta_enviada | result: success | dni: %v | numero: %v", c.data.Document, c.data.Number,
+				"action: send | result: fail | client_id: %v | error: %v",
+				c.config.ID,
+				err,
 			)
 		}
-
-	} else {
-		log.Criticalf(
-			"action: send | result: fail | client_id: %v | error: %v",
-			c.config.ID,
-			err,
-		)
 	}
-
+	respuesta,_ := protocol.ReceiveMessage()
+	if respuesta == constants.ERROR_PROCESSING_CHUNKS {
+		log.Criticalf("action: apuestas_enviadas | result: fail")
+	} else {
+		log.Infof("action: apuestas_enviadas | result: success")
+	}
 	c.conn.Close()
 }
 

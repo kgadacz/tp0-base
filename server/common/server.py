@@ -3,10 +3,10 @@ import logging
 import signal
 import sys
 
-from common.protocol import receive_message, send_message, receive_message_chunks
+from common.protocol import receive_message, send_message
 from common.utils import store_bets
 from common.bet_parser import parse_bets
-from common.constants import OK_RESPONSE,ERROR_RESPONSE
+from common.constants import ERROR_PROCESSING_CHUNKS_RESPONSE, OK_RESPONSE,ERROR_RESPONSE
 
 class Server:
     def __init__(self, port, listen_backlog, amount_of_clients):
@@ -49,9 +49,6 @@ class Server:
         communication with a client. After client with communucation
         finishes, servers starts to accept new connections again
         """
-
-        # TODO: Modify this program to handle signal to graceful shutdown
-        # the server
         while True:
             client_sock = self.__accept_new_connection()
             self.__handle_client_connection(client_sock)
@@ -66,26 +63,29 @@ class Server:
         self._active_connections.append(client_sock)
        
         try:
-            count_chunks = receive_message_chunks(client_sock)
+            count_chunks = int(receive_message(client_sock))
             error_processing_chunks = False
-            logging.info(f'chunks_recibidos | result: success | cantidad: {count_chunks}')
+            logging.debug(f'chunks_recibidos | result: success | cantidad: {count_chunks}')
             cantidad_apuestas = 0
-            for i in range(count_chunks):
-                bets,hasError = receive_message(client_sock,i,count_chunks)
-                send_message(client_sock, "Ok")
+            for _ in range(count_chunks):
+                bets,hasError = parse_bets(receive_message(client_sock))
                 if hasError:
                     error_processing_chunks = True
-                                    
-                cantidad_apuestas += len(bets)
-                for bet in bets:
-                    store_bets([bet])
+                    send_message(client_sock, ERROR_RESPONSE)
+                else:
+                    cantidad_apuestas += len(bets)
+                    send_message(client_sock, OK_RESPONSE)
+                    for bet in bets:
+                        store_bets([bet])
             if error_processing_chunks:
                 logging.error(f'apuestas_recibidas | result: fail | cantidad: {cantidad_apuestas}')
+                send_message(client_sock, ERROR_PROCESSING_CHUNKS_RESPONSE)
             else:
                 logging.info(f'apuestas_recibidas | result: success | cantidad: {cantidad_apuestas}')
+                send_message(client_sock, OK_RESPONSE)
         except OSError as e:
             logging.error("action: receive_message | result: fail | error: {e}")
-            send_message(client_sock, ERROR_RESPONSE)
+            send_message(client_sock, ERROR_PROCESSING_CHUNKS_RESPONSE)
         finally:
             client_sock.close()
             self._active_connections.remove(client_sock)

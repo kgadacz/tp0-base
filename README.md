@@ -18,22 +18,23 @@ Finalmente para ver los logs se puede hacer con:
 * docker logs server
 * docker logs clientX (donde X viene a ser el numero del cliente, por ejemplo client1)
 
+
 ### Ejercicio N°5:
 
 Protocolo de comunicación implementado:
 
-Cuando un cliente desea enviar un mensaje, primero envía la longitud del mensaje (como un entero de 2 bytes en formato Big Endian), seguido del contenido del mensaje. Esto asegura que el servidor pueda leer el mensaje completo sin problemas de lectura corta.
-Cuando el servidor envía un mensaje, también envía primero la longitud del mensaje (como un entero de 2 bytes en formato Big Endian) y luego el mensaje en sí. De esta manera se asegura no tener problemas de lectura corta
+* Cuando un cliente desea enviar un mensaje, primero envía la longitud del mensaje (como un entero de 2 bytes en formato Big Endian), seguido del contenido del mensaje. Esto asegura que el servidor pueda leer el mensaje completo sin problemas de lectura corta.
+* Cuando el servidor envía un mensaje, también envía primero la longitud del mensaje (como un entero de 2 bytes en formato Big Endian) y luego el mensaje en sí. De esta manera se asegura no tener problemas de lectura corta
+
 Para enviar los bets se utiliza el siguiente formato:
 
-NroAgencia,Nombre,Apellido,Documento,FechaNacimiento,NroApostado
+    NroAgencia,Nombre,Apellido,Documento,FechaNacimiento,NroApostado
+
 Es decir, los datos estan separados por comas y en ese orden.
 
 Los paquetes que envia el cliente como el servidor pueden ser de a lo sumo 8kb.
 
 ### Ejercicio N°6:
-
-Modificaciones realizadas al protocolo descripto en el ejercicio 5:
 
 Para adaptar la logica a lo pedido en este ejercicio, es decir, el envio por chunks, el cliente envia un primer paquete indicando la cantidad de chunks que va a recibir el servidor. Esto lo utiliza el servidor para saber cuantos chunks esperar. Luego el protocolo continua igual que lo descripto en el ejercicio 5
 

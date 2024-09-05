@@ -41,22 +41,6 @@ func (p *Protocol) SendMessage(msg string) error {
 	return nil
 }
 
-func (p *Protocol) SendMessageChunks(msg int) error {
-	// Create a buffer to hold the byte representation of the integer
-	buf := make([]byte, 4) // Using 4 bytes for int (assuming 32-bit integer)
-
-	// Convert the integer to bytes in big-endian order
-	binary.BigEndian.PutUint32(buf, uint32(msg))
-
-	// Send the byte slice to the connection
-	_, err := p.conn.Write(buf)
-	if err != nil {
-		return fmt.Errorf("error writing amount of chunks: %w", err)
-	}
-
-	return nil
-}
-
 func (p *Protocol) ReceiveMessage() (string, error) {
 	// Read the length of the message (2 bytes)
 	lengthBytes := make([]byte, 2)
