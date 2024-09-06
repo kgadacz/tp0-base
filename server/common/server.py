@@ -7,7 +7,7 @@ from common.protocol import send_message, receive_message
 from common.utils import store_bets, load_bets, has_won
 from common.bet_parser import parse_bets, dnis_to_string
 from common.constants import (
-    BET_TYPE_MESSAGE, WINNER_TYPE_MESSAGE,
+    BET_TYPE_MESSAGE, END_CHUNKS_MESSAGE, WINNER_TYPE_MESSAGE,
     OK_RESPONSE, ERROR_RESPONSE, REFUSED_RESPONSE
 )
 
@@ -67,14 +67,12 @@ class Server:
             self.processes.append(client_proccess)
 
     def __handle_client_bets(self, client_sock):
-        count_chunks = int(receive_message(client_sock))
         error_processing_chunks = False
-        logging.debug(f'chunks_recibidos | result: success | cantidad: {count_chunks}')
         cantidad_apuestas = 0
+        message = receive_message(client_sock)
 
-        for i in range(count_chunks):
-            data = receive_message(client_sock)
-            bets, hasError = parse_bets(data)
+        while message != END_CHUNKS_MESSAGE:
+            bets, hasError = parse_bets(message)
             send_message(client_sock, OK_RESPONSE)
 
             if hasError:
@@ -87,6 +85,9 @@ class Server:
             with self._store_bets_lock:
                 store_bets([bet for bet in bets])
             logging.debug("libero el lock para store_bets")
+
+            message = receive_message(client_sock)
+
         logging.debug("pido el lock para incrementar el contador de apuestas")
         with self._clients_bets_finished_lock:
             self._clients_bets_finished.value += 1

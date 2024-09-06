@@ -7,7 +7,6 @@ import (
 	"syscall"
 	"github.com/7574-sistemas-distribuidos/docker-compose-init/client/transport"
 	"github.com/7574-sistemas-distribuidos/docker-compose-init/client/constants"
- 	"strconv"
 	"strings"
 	"github.com/op/go-logging"
 )
@@ -16,7 +15,6 @@ var log = logging.MustGetLogger("log")
 
 type Client struct {
 	config     ClientConfig
-	data 	   []string
 	conn       net.Conn
 	signalChan chan os.Signal
 	closeChan  chan bool
@@ -24,10 +22,9 @@ type Client struct {
 
 // NewClient Initializes a new client receiving the configuration
 // as a parameter
-func NewClient(config ClientConfig, bets []string) *Client {
+func NewClient(config ClientConfig) *Client {
 	client := &Client{
 		config:     config,
-		data:       bets,
 		signalChan: make(chan os.Signal, 1),
 		closeChan:  make(chan bool),
 	}
@@ -58,32 +55,31 @@ func (c *Client) createClientSocket() error {
 	return nil
 }
 
+
+
 func (c *Client) StartSendingBets() error {
 	// Create the connection to the server
 	c.createClientSocket()
-
+	id := os.Getenv("ID")
 	protocol := transport.NewProtocol(c.conn)
-
-
 	protocol.SendMessage(constants.SEND_BETS)
-
-	chunksAmount := len(c.data)
-	chunksAmountString := strconv.Itoa((len(c.data)))
-	protocol.SendMessage(chunksAmountString)
-	for i := 0; i < chunksAmount; i++ {
-		// Send each item in the data array
-		item := c.data[i]
-		protocol.SendMessage(item)
-		_, err := protocol.ReceiveMessage()
-
-		if err != nil {
-			log.Criticalf(
-				"action: send | result: fail | client_id: %v | error: %v",
-				c.config.ID,
-				err,
-			)
-		}
+	fileName := "agency-" + id + ".csv"
+	reader, err := NewCSVChunkReader(fileName, c.config.BatchMaxSize, id)
+	if err != nil {
+		return err
 	}
+	defer reader.Close()
+
+
+	batch, size, err := reader.GetNextChunk()
+
+	for size > 0 {
+		protocol.SendMessage(batch)
+		protocol.ReceiveMessage()
+		batch, size, err = reader.GetNextChunk()
+	}
+
+	protocol.SendMessage(constants.END_CHUNKS_MESSAGE)
 	respuesta,_ := protocol.ReceiveMessage()
 	if respuesta == constants.ERROR_PROCESSING_CHUNKS {
 		log.Criticalf("action: apuestas_enviadas | result: fail")

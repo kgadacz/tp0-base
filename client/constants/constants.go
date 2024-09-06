@@ -20,6 +20,7 @@ const (
 const (
 	SEND_BETS    = "SEND_BETS"
 	ASK_WINNER   = "ASK_WINNER"
+    END_CHUNKS_MESSAGE = "END_CHUNKS"
 )
 
 const (

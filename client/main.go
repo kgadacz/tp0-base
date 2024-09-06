@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"encoding/csv"
 	"strings"
 	"time"
 
@@ -93,56 +92,6 @@ func PrintConfig(v *viper.Viper) {
 	)
 }
 
-func loadBetsFromCSV(fileName string, maxAmount int, id string) []string {
-	file, err := os.Open(fileName)
-	if err != nil {
-		fmt.Printf("Error opening file: %v\n", err)
-		return nil
-	}
-	defer file.Close()
-
-	reader := csv.NewReader(file)
-	var result []string
-	var block strings.Builder
-	lineCount := 0
-
-	for {
-		record, err := reader.Read()
-		if err != nil {
-			break // End of file or an error
-		}
-
-		// Add id as prefix to the line and concatenate it with ";"
-		prefixedLine := id + "," + recordToString(record)
-		if lineCount > 0 {
-			block.WriteString(";")
-		}
-		block.WriteString(prefixedLine)
-		lineCount++
-
-		// Process block every maxAmount lines
-		if lineCount == maxAmount {
-			if block.Len() < 8192 { // 8KB = 8192 bytes
-				result = append(result, block.String())
-			}
-			// Reset block and line count for next batch
-			block.Reset()
-			lineCount = 0
-		}
-	}
-
-	// Handle any remaining lines if they don't form a full block
-	if lineCount > 0 && block.Len() < 8192 {
-		result = append(result, block.String())
-	}
-
-	return result
-}
-
-func recordToString(record []string) string {
-	return strings.Join(record, ",")
-}
-
 func main() {
 	v, err := InitConfig()
 	if err != nil {
@@ -161,13 +110,10 @@ func main() {
 		ID:            v.GetString("id"),
 		LoopAmount:    v.GetInt("loop.amount"),
 		LoopPeriod:    v.GetDuration("loop.period"),
+		BatchMaxSize: v.GetInt("batch.maxAmount"),
 	}
 
-	Id := os.Getenv("ID")
-	maxAmount := v.GetInt("batch.maxAmount")
-	fileName := "agency-" + Id + ".csv"
-	bets := loadBetsFromCSV(fileName,maxAmount,Id)
-	client := common.NewClient(clientConfig, bets)
+	client := common.NewClient(clientConfig)
 	client.StartClientLoop()
 
 }
